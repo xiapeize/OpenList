@@ -20,18 +20,16 @@ ARG GID=1001
 
 WORKDIR /opt/openlist/
 
-RUN apk add --no-cache su-exec && \
-    addgroup -g ${GID} ${USER} && \
+RUN addgroup -g ${GID} ${USER} && \
     adduser -D -u ${UID} -G ${USER} ${USER} && \
     mkdir -p /opt/openlist/data
 
 COPY --from=builder --chmod=755 --chown=${UID}:${GID} /app/bin/openlist ./
 COPY --chmod=755 --chown=${UID}:${GID} entrypoint.sh /entrypoint.sh
 
-# Do NOT switch to USER ${USER} here.
-# The container must start as root so entrypoint.sh can chown the mounted volume,
-# then it drops privileges to 1001 via su-exec before running openlist.
-# 不要在这里切换到 USER ${USER}：容器需以 root 启动，由 entrypoint.sh 修正挂载卷权限后再降权到 1001 运行。
+# Do NOT switch to USER ${USER}. orkestr drops CAP_CHOWN/CAP_SETUID/CAP_SETGID,
+# so privilege drop via su-exec is impossible. Run as root.
+# 不要切换到 USER ${USER}。orkestr 丢弃了相关 capability，无法降权，以 root 运行。
 # USER ${USER}
 
 RUN /entrypoint.sh version

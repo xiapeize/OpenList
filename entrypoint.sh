@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# If running as root, fix data directory ownership and drop privileges to openlist (UID/GID 1001)
-# 如果以 root 运行，修正数据目录权限并降权到 openlist 用户（UID/GID 1001）
-if [ "$(id -u)" = "0" ]; then
-  if [ -d /opt/openlist/data ]; then
-    chown -R 1001:1001 /opt/openlist/data
-  fi
-  exec su-exec 1001:1001 "$0" "$@"
-fi
+# No privilege drop. Run OpenList as the current user (root under orkestr's constraints).
+# orkestr drops CAP_CHOWN, CAP_SETGID, CAP_SETUID, so chown and su-exec cannot work.
+# 不再降权。以当前用户（orkestr 约束下为 root）直接运行 OpenList。
+# orkestr 丢弃了 CAP_CHOWN、CAP_SETGID、CAP_SETUID，chown 和 su-exec 无法工作。
 
 umask ${UMASK}
 

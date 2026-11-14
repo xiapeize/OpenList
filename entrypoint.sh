@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# If running as root, fix data directory ownership and drop privileges to openlist (UID/GID 1001)
+# 如果以 root 运行，修正数据目录权限并降权到 openlist 用户（UID/GID 1001）
+if [ "$(id -u)" = "0" ]; then
+  if [ -d /opt/openlist/data ]; then
+    chown -R 1001:1001 /opt/openlist/data
+  fi
+  exec su-exec 1001:1001 "$0" "$@"
+fi
+
 umask ${UMASK}
 
 if [ "$1" = "version" ]; then
